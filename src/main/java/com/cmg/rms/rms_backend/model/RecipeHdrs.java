@@ -21,25 +21,31 @@ public class RecipeHdrs extends BaseEntity {
 
   @Id
   @Column(name = "recipe_id", unique = true, nullable = false)
-  Long recipeSeqno;
+  public Long recipeSeqno;
 
   @Column(name = "description", nullable = false)
-  String description;
+  public String description;
 
   @Column(name = "recipe_name", nullable = false)
-  String recipeName;
+  public String recipeName;
 
   @Column(name = "category", nullable = false)
-  String category;
+  public String category;
 
   @Column(name = "image")
-  Byte[] image;
+  public byte[] image;
 
-  @ManyToOne
-  @JoinColumn(name = "recipe_id")
-  public RecipeDtls recipeDtls;
+  // @ManyToOne
+  // @JoinColumn(name = "recipe_id")
+  // public RecipeDtls recipeDtls;
 
   @ManyToOne
   @JoinColumn(name = "category_id")
   public FoodCategory foodCategory;
+
+  @Column(name = "instructions")
+  public String instructions;
+
+  @Column(name = "ingredients")
+  public String ingredients;
 }

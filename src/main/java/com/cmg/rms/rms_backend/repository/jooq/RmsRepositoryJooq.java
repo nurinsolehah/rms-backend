@@ -2,6 +2,7 @@ package com.cmg.rms.rms_backend.repository.jooq;
 
 import static org.jooq.impl.DSL.*;
 
+import com.cmg.rms.rms_backend.dto.CreateRecipeRequestDTO;
 import com.cmg.rms.rms_backend.dto.RecipeDetailsDTO;
 import com.cmg.rms.rms_backend.dto.RecipeListDTO;
 import com.cmg.rms.rms_backend.dto.RecipeListRequestDTO;
@@ -9,6 +10,7 @@ import com.cmg.rms.rms_backend.dto.paging.PaginationRequestDTO;
 import com.cmg.rms.rms_backend.util.JooqUtil;
 import com.cmg.rms.rms_backend.util.LogUtil;
 import com.cmg.rms.rms_backend.util.TableUtil;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -91,20 +93,19 @@ public class RmsRepositoryJooq {
     condition = condition.and(field("RH.recipe_id").eq(recipeId));
     condition = condition.and(field("RH.active_flag").eq("A"));
 
-    Field<String> recipeName = field("RH.recipe_name", String.class);
-    Field<String> description = field("RH.description", String.class);
-    Field<String> category = field("FC.category_name", String.class);
-    Field<String> image = val(null, String.class);
-    Field<String> recipeIngredients = field("RD.recipe_ingredients", String.class);
-    Field<String> recipeInstructions = field("RD.recipe_instructions", String.class);
+    Field<String> recipeName = field("RH.recipe_name", String.class).as("recipeName");
+    Field<String> description = field("RH.description", String.class).as("description");
+    Field<String> category = field("RH.category", String.class).as("category");
+    Field<String> recipeIngredients =
+        field("RD.recipe_ingredients", String.class).as("recipeIngredients");
+    Field<String> recipeInstructions =
+        field("RD.recipe_instructions", String.class).as("recipeInstructions");
 
     Select<?> query =
-        dsl.select(recipeName, description, category, image, recipeIngredients, recipeInstructions)
+        dsl.select(recipeName, description, category, recipeIngredients, recipeInstructions)
             .from(TableUtil.table(TableUtil.RMS_RECIPE_HDRS, "RH"))
             .leftJoin(TableUtil.table(TableUtil.RMS_RECIPE_DTLS, "RD"))
             .on(field("RH.recipe_id").eq(field("RD.recipe_id")))
-            .leftJoin(TableUtil.table(TableUtil.RMS_FOOD_CATEGORY, "FC"))
-            .on(field("RH.category_id").eq(field("FC.category_id")))
             .where(condition);
 
     log.info(LogUtil.QUERY, query);
@@ -113,5 +114,40 @@ public class RmsRepositoryJooq {
 
     log.info(LogUtil.EXIT_JOOQ, methodName);
     return recipeDetails;
+  }
+
+  public void addRecipe(CreateRecipeRequestDTO requestDTO) {
+    final String methodName = "addRecipe";
+    log.info(LogUtil.ENTRY_JOOQ, methodName);
+
+    dsl.transaction(
+        ctx -> {
+          dsl.insertInto(TableUtil.table(TableUtil.RMS_RECIPE_HDRS))
+              .set(field("recipe_name"), requestDTO.recipeName())
+              .set(field("description"), requestDTO.description())
+              .set(field("category"), requestDTO.category())
+              .set(field("created_by"), 1L)
+              .set(field("created_date"), LocalDateTime.now())
+              .set(field("updated_by"), 1L)
+              .set(field("updated_date"), LocalDateTime.now())
+              .set(field("active_flag"), "A")
+              .execute();
+        });
+
+    log.info(LogUtil.EXIT_JOOQ, methodName);
+  }
+
+  public void deleteRecipe(Long recipeId) {
+    final String methodName = "deleteRecipe";
+    log.info(LogUtil.ENTRY_JOOQ, methodName);
+
+    dsl.transaction(
+        ctx -> {
+          dsl.deleteFrom(table(TableUtil.RMS_RECIPE_HDRS))
+              .where(field("recipe_id").eq(recipeId))
+              .execute();
+        });
+
+    log.info(LogUtil.EXIT_JOOQ, methodName);
   }
 }
