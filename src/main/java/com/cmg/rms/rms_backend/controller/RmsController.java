@@ -1,20 +1,26 @@
 package com.cmg.rms.rms_backend.controller;
 
 import com.cmg.rms.rms_backend.IRmsService;
+import com.cmg.rms.rms_backend.dto.CreateRecipeRequestDTO;
 import com.cmg.rms.rms_backend.dto.RecipeDetailsDTO;
 import com.cmg.rms.rms_backend.dto.RecipeListDTO;
 import com.cmg.rms.rms_backend.dto.RecipeListRequestDTO;
 import com.cmg.rms.rms_backend.dto.paging.PaginationRequestDTO;
 import com.cmg.rms.rms_backend.dto.paging.PaginationResponseDTO;
 import com.cmg.rms.rms_backend.util.LogUtil;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @AllArgsConstructor
@@ -71,5 +77,61 @@ public class RmsController {
 
     log.info(LogUtil.EXIT, methodName);
     return response;
+  }
+
+  @GetMapping("/recipe_list/{recipeId}/image")
+  public void getRecipeImage(
+      @PathVariable("recipeId") Long recipeId, HttpServletResponse responseImage)
+      throws IOException {
+    final String methodName = "getRecipeImage";
+    log.info(LogUtil.ENTRY, methodName);
+
+    rmsService.getRecipeImage(recipeId, responseImage);
+
+    log.info(LogUtil.EXIT, methodName);
+  }
+
+  @PostMapping("/add_recipe")
+  public void addRecipe(@RequestBody CreateRecipeRequestDTO requestDTO) {
+
+    final String methodName = "addRecipe";
+    log.info(LogUtil.ENTRY, methodName);
+
+    rmsService.addRecipe(requestDTO);
+
+    log.info(LogUtil.EXIT, methodName);
+  }
+
+  @PostMapping("/update_image/{recipeId}")
+  public void updateImage(
+      @PathVariable("recipeId") Long recipeId,
+      @RequestParam(required = false) MultipartFile image) {
+    final String methodName = "updateImage";
+    log.info(LogUtil.ENTRY, methodName);
+
+    rmsService.updateRecipeImage(recipeId, image);
+
+    log.info(LogUtil.EXIT, methodName);
+  }
+
+  @PostMapping("/update_recipe/{recipeId}")
+  public void updateRecipeDetails(
+      @PathVariable("recipeId") Long recipeId, @RequestBody CreateRecipeRequestDTO requestDTO) {
+    final String methodName = "updateRecipeDetails";
+    log.info(LogUtil.ENTRY, methodName);
+
+    rmsService.updateRecipeDetails(recipeId, requestDTO);
+
+    log.info(LogUtil.EXIT, methodName);
+  }
+
+  @PostMapping("/delete_recipe/{recipeId}")
+  public void deleteRecipe(@PathVariable("recipeId") Long recipeId) {
+    final String methodName = "deleteRecipe";
+    log.info(LogUtil.ENTRY, methodName);
+
+    rmsService.deleteRecipe(recipeId);
+
+    log.info(LogUtil.EXIT, methodName);
   }
 }
