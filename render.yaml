@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: recipe-backend
+    name: rms-backend
     runtime: docker
     repo: https://github.com/nurinsolehah/rms-backend.git
     branch: main
