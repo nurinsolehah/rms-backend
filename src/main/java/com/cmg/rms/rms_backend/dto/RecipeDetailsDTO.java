@@ -1,6 +1,5 @@
 package com.cmg.rms.rms_backend.dto;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +12,6 @@ public class RecipeDetailsDTO {
   String description;
   String category;
   // byte[] image;
-  List<String> recipeIngredients;
-  List<String> recipeInstructions;
+  String recipeIngredients;
+  String recipeInstructions;
 }

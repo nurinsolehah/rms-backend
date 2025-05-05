@@ -9,4 +9,18 @@ public class RmsUtil {
     }
     return checkItem;
   }
+
+  public static <T> Boolean isExist(T value) {
+    if (value == null) {
+      return false;
+    }
+
+    if (value instanceof String) {
+      if (((String) value).isBlank()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }

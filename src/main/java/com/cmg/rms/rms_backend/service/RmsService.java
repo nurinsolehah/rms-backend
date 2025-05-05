@@ -2,6 +2,7 @@ package com.cmg.rms.rms_backend.service;
 
 import com.cmg.rms.rms_backend.IRmsService;
 import com.cmg.rms.rms_backend.dto.CreateRecipeRequestDTO;
+import com.cmg.rms.rms_backend.dto.FoodCategoryListDTO;
 import com.cmg.rms.rms_backend.dto.RecipeDetailsDTO;
 import com.cmg.rms.rms_backend.dto.RecipeListDTO;
 import com.cmg.rms.rms_backend.dto.RecipeListRequestDTO;
@@ -10,10 +11,12 @@ import com.cmg.rms.rms_backend.dto.paging.PaginationResponseDTO;
 import com.cmg.rms.rms_backend.exception.ExceptionCode;
 import com.cmg.rms.rms_backend.exception.RmsException;
 import com.cmg.rms.rms_backend.mapper.RecipeListMapper;
+import com.cmg.rms.rms_backend.model.FoodCategory;
 import com.cmg.rms.rms_backend.model.RecipeHdrs;
 import com.cmg.rms.rms_backend.repository.jooq.RmsRepositoryJooq;
 import com.cmg.rms.rms_backend.repository.jpa.FoodCategoryRepository;
 import com.cmg.rms.rms_backend.repository.jpa.RecipeHdrsRepository;
+import com.cmg.rms.rms_backend.security.UsersDTO;
 import com.cmg.rms.rms_backend.util.LogUtil;
 import com.cmg.rms.rms_backend.util.PaginationUtil;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,7 +40,6 @@ public class RmsService implements IRmsService {
 
   private final RmsRepositoryJooq rmsRepositoryJooq;
   private final RecipeHdrsRepository recipeHdrsRepository;
-  // private final RecipeDtlsRepository recipeDtlsRepository;
   private final FoodCategoryRepository foodCategoryRepository;
 
   @Override
@@ -110,22 +112,9 @@ public class RmsService implements IRmsService {
   }
 
   @Override
-  public void addRecipe(CreateRecipeRequestDTO requestDTO) {
+  public void addRecipe(CreateRecipeRequestDTO requestDTO, UsersDTO user) {
     final String methodName = "addRecipe";
     log.info(LogUtil.ENTRY_SERVICE, methodName);
-
-    RecipeHdrs recipeHdrs = new RecipeHdrs();
-    recipeHdrs.setRecipeName(requestDTO.recipeName());
-    recipeHdrs.setDescription(requestDTO.description());
-    recipeHdrs.setCategory(requestDTO.category());
-    recipeHdrs.setFoodCategory(foodCategoryRepository.findByCategoryName(requestDTO.category()));
-    recipeHdrs.setCreatedBy(1L);
-    recipeHdrs.setCreatedDate(LocalDateTime.now());
-    recipeHdrs.setUpdatedBy(1L);
-    recipeHdrs.setUpdatedDate(LocalDateTime.now());
-    recipeHdrs.setActiveFlag('A');
-    recipeHdrs.setIngredients(requestDTO.ingredients());
-    recipeHdrs.setInstructions(requestDTO.instructions());
 
     // List<RecipeDtls> recipeDtlsList = new ArrayList<>();
     // List<RecipeInstructionsDTO> instructions = requestDTO.recipeInstructions();
@@ -146,17 +135,16 @@ public class RmsService implements IRmsService {
     //   recipeDtlsList.add(recipeDtls);
     // }
 
-    recipeHdrsRepository.save(recipeHdrs);
+    // recipeHdrsRepository.save(recipeHdrs);
     // recipeDtlsRepository.saveAll(recipeDtlsList);
-
-    // rmsRepositoryJooq.addRecipe(requestDTO);
+    rmsRepositoryJooq.addRecipe(requestDTO, user);
 
     log.info(LogUtil.EXIT_SERVICE, methodName);
   }
 
   @Override
   @Transactional
-  public void updateRecipeImage(Long recipeId, MultipartFile image) {
+  public void updateRecipeImage(Long recipeId, MultipartFile image, UsersDTO user) {
     final String methodName = "updateRecipeImage";
     log.info(LogUtil.ENTRY_SERVICE, methodName);
 
@@ -165,7 +153,7 @@ public class RmsService implements IRmsService {
     try {
       if (recipeHdrs != null) {
         recipeHdrs.setImage(image.getBytes());
-        recipeHdrs.setUpdatedBy(1L);
+        recipeHdrs.setUpdatedBy(user.userId());
         recipeHdrs.setUpdatedDate(LocalDateTime.now());
       }
     } catch (IOException e) {
@@ -179,49 +167,25 @@ public class RmsService implements IRmsService {
 
   @Override
   @Transactional
-  public void updateRecipeDetails(Long recipeId, CreateRecipeRequestDTO requestDTO) {
+  public void updateRecipeDetails(Long recipeId, CreateRecipeRequestDTO requestDTO, UsersDTO user) {
     final String methodName = "updateRecipeDetails";
     log.info(LogUtil.ENTRY_SERVICE, methodName);
 
-    Boolean isAlreadyUpdated = checkRecipeUpdated(recipeId);
+    RecipeHdrs recipeHdrs = recipeHdrsRepository.getReferenceById(recipeId);
 
-    if (!isAlreadyUpdated) {
-      return;
+    if (recipeHdrs.getUpdatedDate().isAfter(LocalDateTime.now())) {
+      throw new RmsException(
+          ExceptionCode.FORBIDDEN,
+          "Recipe is updated by other user, please try again after some time");
     }
 
-    RecipeHdrs recipeHdrs = recipeHdrsRepository.getReferenceById(recipeId);
     recipeHdrs.setRecipeName(requestDTO.recipeName());
     recipeHdrs.setDescription(requestDTO.description());
-    recipeHdrs.setUpdatedBy(1L);
+    recipeHdrs.setUpdatedBy(user.userId());
     recipeHdrs.setUpdatedDate(LocalDateTime.now());
     recipeHdrs.setActiveFlag('A');
     recipeHdrs.setInstructions(requestDTO.instructions());
     recipeHdrs.setIngredients(requestDTO.ingredients());
-
-    // RecipeDtls recipeDtls = recipeDtlsRepository.findByRecipeId(recipeId);
-
-    // List<RecipeDtls> recipeDtlsList = new ArrayList<>();
-    // List<RecipeInstructionsDTO> instructions = requestDTO.recipeInstructions();
-    // if (instructions.size() > 0)
-    //   for (int i = 0; i < instructions.size(); i++) {
-    //     RecipeInstructionsDTO instruction = instructions.get(i);
-    //     // RecipeDtls recipeDtls = new RecipeDtls();
-    //     recipeDtls.setRecipeHdrs(recipeHdrs);
-    //     recipeDtls.setStepNumber((long) i + 1);
-    //     recipeDtls.setRecipeIngredients(instruction.recipeIngredients());
-    //     recipeDtls.setRecipeInstructions(instruction.recipeInstructions());
-    //     recipeDtls.setQuantity(instruction.quantity());
-    //     recipeDtls.setQuantityUnit(instruction.quantityUnit());
-
-    //     recipeDtls.setUpdatedBy(1L);
-    //     recipeDtls.setUpdatedDate(LocalDateTime.now());
-    //     recipeDtlsList.add(recipeDtls);
-    //   }
-    // recipeDtls.setRecipeIngredients(requestDTO.recipeIngredients());
-    // recipeDtls.setRecipeInstructions(requestDTO.recipeInstructions());
-    // recipeDtls.setUpdatedBy(1L);
-    // recipeDtls.setUpdatedDate(LocalDateTime.now());
-    // recipeDtls.setActiveFlag('A');
 
     recipeHdrsRepository.save(recipeHdrs);
     // recipeDtlsRepository.save(recipeDtls);
@@ -239,19 +203,29 @@ public class RmsService implements IRmsService {
     log.info(LogUtil.EXIT_SERVICE, methodName);
   }
 
-  public Boolean checkRecipeUpdated(Long recipeId) {
-    final String methodName = "checkRecipeUpdated";
+  @Override
+  public List<FoodCategoryListDTO> getFoodCategory() {
+    final String methodName = "getFoodCategory";
     log.info(LogUtil.ENTRY_SERVICE, methodName);
 
-    RecipeHdrs recipeHdrs = recipeHdrsRepository.getReferenceById(recipeId);
-
-    if (recipeHdrs.getUpdatedDate().isAfter(LocalDateTime.now())) {
-      throw new RmsException(
-          ExceptionCode.FORBIDDEN,
-          "Recipe is updated by other user, please try again after some time");
-    }
+    List<FoodCategoryListDTO> response = rmsRepositoryJooq.getFoodCategory();
 
     log.info(LogUtil.EXIT_SERVICE, methodName);
-    return true;
+    return response;
+  }
+
+  @Override
+  @Transactional
+  public void removeFoodCategory(Long categoryId, UsersDTO user) {
+    final String methodName = "removeFoodCategory";
+    log.info(LogUtil.ENTRY_SERVICE, methodName);
+
+    FoodCategory foodCategory = foodCategoryRepository.getReferenceById(categoryId);
+    foodCategory.setActiveFlag('I');
+    foodCategory.setUpdatedBy(user.userId());
+    foodCategory.setUpdatedDate(LocalDateTime.now());
+    foodCategoryRepository.save(foodCategory);
+
+    log.info(LogUtil.EXIT_SERVICE, methodName);
   }
 }

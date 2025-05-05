@@ -3,10 +3,13 @@ package com.cmg.rms.rms_backend.repository.jooq;
 import static org.jooq.impl.DSL.*;
 
 import com.cmg.rms.rms_backend.dto.CreateRecipeRequestDTO;
+import com.cmg.rms.rms_backend.dto.FoodCategoryListDTO;
 import com.cmg.rms.rms_backend.dto.RecipeDetailsDTO;
 import com.cmg.rms.rms_backend.dto.RecipeListDTO;
 import com.cmg.rms.rms_backend.dto.RecipeListRequestDTO;
 import com.cmg.rms.rms_backend.dto.paging.PaginationRequestDTO;
+import com.cmg.rms.rms_backend.repository.jpa.FoodCategoryRepository;
+import com.cmg.rms.rms_backend.security.UsersDTO;
 import com.cmg.rms.rms_backend.util.JooqUtil;
 import com.cmg.rms.rms_backend.util.LogUtil;
 import com.cmg.rms.rms_backend.util.TableUtil;
@@ -26,6 +29,7 @@ import org.springframework.stereotype.Repository;
 public class RmsRepositoryJooq {
 
   private final DSLContext dsl;
+  private final FoodCategoryRepository foodCategoryRepository;
 
   public List<RecipeListDTO> getRecipeList(
       RecipeListRequestDTO requestDTO, PaginationRequestDTO pgDTO) {
@@ -96,16 +100,13 @@ public class RmsRepositoryJooq {
     Field<String> recipeName = field("RH.recipe_name", String.class).as("recipeName");
     Field<String> description = field("RH.description", String.class).as("description");
     Field<String> category = field("RH.category", String.class).as("category");
-    Field<String> recipeIngredients =
-        field("RD.recipe_ingredients", String.class).as("recipeIngredients");
+    Field<String> recipeIngredients = field("RH.ingredients", String.class).as("recipeIngredients");
     Field<String> recipeInstructions =
-        field("RD.recipe_instructions", String.class).as("recipeInstructions");
+        field("RH.instructions", String.class).as("recipeInstructions");
 
     Select<?> query =
         dsl.select(recipeName, description, category, recipeIngredients, recipeInstructions)
             .from(TableUtil.table(TableUtil.RMS_RECIPE_HDRS, "RH"))
-            .leftJoin(TableUtil.table(TableUtil.RMS_RECIPE_DTLS, "RD"))
-            .on(field("RH.recipe_id").eq(field("RD.recipe_id")))
             .where(condition);
 
     log.info(LogUtil.QUERY, query);
@@ -116,7 +117,7 @@ public class RmsRepositoryJooq {
     return recipeDetails;
   }
 
-  public void addRecipe(CreateRecipeRequestDTO requestDTO) {
+  public void addRecipe(CreateRecipeRequestDTO requestDTO, UsersDTO user) {
     final String methodName = "addRecipe";
     log.info(LogUtil.ENTRY_JOOQ, methodName);
 
@@ -126,11 +127,16 @@ public class RmsRepositoryJooq {
               .set(field("recipe_name"), requestDTO.recipeName())
               .set(field("description"), requestDTO.description())
               .set(field("category"), requestDTO.category())
-              .set(field("created_by"), 1L)
+              .set(field("created_by"), user.userId())
               .set(field("created_date"), LocalDateTime.now())
-              .set(field("updated_by"), 1L)
+              .set(field("updated_by"), user.userId())
               .set(field("updated_date"), LocalDateTime.now())
               .set(field("active_flag"), "A")
+              .set(field("ingredients"), requestDTO.ingredients())
+              .set(field("instructions"), requestDTO.instructions())
+              .set(
+                  field("category_id"),
+                  foodCategoryRepository.findByCategoryName(requestDTO.category()).getCategoryId())
               .execute();
         });
 
@@ -149,5 +155,30 @@ public class RmsRepositoryJooq {
         });
 
     log.info(LogUtil.EXIT_JOOQ, methodName);
+  }
+
+  public List<FoodCategoryListDTO> getFoodCategory() {
+    final String methodName = "getFoodCategory";
+    log.info(LogUtil.ENTRY_JOOQ, methodName);
+
+    Field<Long> categoryId = field("category_id", Long.class);
+    Field<String> value = field("category_code", String.class).as("value");
+    Field<String> description = field("category_name", String.class).as("description");
+    Field<String> status =
+        when(field("active_flag", String.class).eq("A"), "Active")
+            .otherwise("Inactive")
+            .as("status");
+
+    Select<?> query =
+        dsl.select(categoryId, value, description, status)
+            .from(TableUtil.table(TableUtil.RMS_FOOD_CATEGORY, "RFC"))
+            .orderBy(field("category_code").asc());
+
+    log.info(LogUtil.QUERY, query);
+
+    List<FoodCategoryListDTO> foodCategoryList = query.fetchInto(FoodCategoryListDTO.class);
+
+    log.info(LogUtil.EXIT_JOOQ, methodName);
+    return foodCategoryList;
   }
 }

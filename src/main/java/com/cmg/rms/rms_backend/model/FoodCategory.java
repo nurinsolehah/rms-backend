@@ -21,7 +21,7 @@ public class FoodCategory extends BaseEntity {
   @Id
   @Column(name = "category_id", unique = true, nullable = false)
   @GeneratedValue(generator = "category_id")
-  Long recipeDtlSeqno;
+  Long categoryId;
 
   @Column(name = "category_code", nullable = false)
   String categoryCode;

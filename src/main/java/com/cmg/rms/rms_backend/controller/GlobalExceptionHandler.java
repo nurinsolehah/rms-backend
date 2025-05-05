@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class GlobalExceptionHandler {
   @ExceptionHandler(RmsException.class)
-  public ResponseEntity<ProblemDetail> handlePhisException(RmsException e) {
-    return RmsExceptionHandler.handlePhisException(e);
+  public ResponseEntity<ProblemDetail> handleRmsException(RmsException e) {
+    return RmsExceptionHandler.handleRmsException(e);
   }
 }

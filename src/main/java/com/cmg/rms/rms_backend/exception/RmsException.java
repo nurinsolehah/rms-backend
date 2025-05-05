@@ -49,10 +49,9 @@ public class RmsException extends RuntimeException {
 
     problemDetail.setTitle(title);
     problemDetail.setDetail(message);
-    problemDetail.setProperty("error", "PhIS Exception Error");
+    problemDetail.setProperty("error", "RMS Exception Error");
     problemDetail.setProperty("code", code.name());
     problemDetail.setProperty("messageDetails", messageDetails);
-    // problemDetail.setType();
     return problemDetail;
   }
 }
