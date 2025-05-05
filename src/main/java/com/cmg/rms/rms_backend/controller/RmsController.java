@@ -209,16 +209,45 @@ public class RmsController {
   }
 
   /**
-   * @return a list of food categories as {@link FoodCategoryListDTO}s. Each {@link
-   *     FoodCategoryListDTO} contains the category code as the value and the category name as the
-   *     description and the active flag as the status.
+   * Retrieves a list of food categories based on the given parameters. The list is sorted by the
+   * given sort column and direction, and is paginated by the given page and size. The food category
+   * list is filtered based on the given category name.
+   *
+   * @param categoryName the category name to filter by. If null, all food categories are returned.
+   * @param sort the column to sort by. If null, the list is not sorted.
+   * @param sortDirection the direction to sort by. If null, the list is sorted in ascending order.
+   * @param page the page of the list to retrieve. If null, the first page is retrieved.
+   * @param size the size of the list to retrieve. If null, the default size is used.
+   * @return a list of food categories that match the given parameters.
    */
   @GetMapping("/food_category")
-  public List<FoodCategoryListDTO> getFoodCategory() {
+  public List<FoodCategoryListDTO> getFoodCategory(
+      @RequestParam(required = false) String categoryName,
+      @RequestParam(required = false) String sort,
+      @RequestParam(required = false) String sortDirection,
+      @RequestParam(required = false) Long page,
+      @RequestParam(required = false) Long size) {
     final String methodName = "getFoodCategory";
     log.info(LogUtil.ENTRY, methodName);
 
-    List<FoodCategoryListDTO> response = rmsService.getFoodCategory();
+    PaginationRequestDTO pgDTO = new PaginationRequestDTO(sort, sortDirection, page, size);
+
+    List<FoodCategoryListDTO> response = rmsService.getFoodCategory(categoryName, pgDTO);
+
+    log.info(LogUtil.EXIT, methodName);
+    return response;
+  }
+
+  @GetMapping("/food_category/page")
+  public PaginationResponseDTO getFoodCategoryListPages(
+      @RequestParam(required = false) String categoryName,
+      @RequestParam(required = false) Long size) {
+    final String methodName = "getFoodCategoryListPages";
+    log.info(LogUtil.ENTRY, methodName);
+
+    PaginationRequestDTO pgDTO = new PaginationRequestDTO(null, null, null, size);
+
+    PaginationResponseDTO response = rmsService.getFoodCategoryListPages(categoryName, pgDTO);
 
     log.info(LogUtil.EXIT, methodName);
     return response;

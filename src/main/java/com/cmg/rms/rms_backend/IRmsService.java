@@ -32,7 +32,9 @@ public interface IRmsService {
 
   void deleteRecipe(Long recipeId);
 
-  List<FoodCategoryListDTO> getFoodCategory();
+  List<FoodCategoryListDTO> getFoodCategory(String categoryName, PaginationRequestDTO pgDTO);
+
+  PaginationResponseDTO getFoodCategoryListPages(String categoryName, PaginationRequestDTO pgDTO);
 
   void removeFoodCategory(Long categoryId, UsersDTO user);
 }

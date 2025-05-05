@@ -33,8 +33,8 @@ public class RmsSecurityFilterChain {
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs*/**")
                     .permitAll()
                     .requestMatchers(
-                        "/api/v1/users/user_list",
-                        "/api/v1/rms/food_category",
+                        "/api/v1/users/user_list/**",
+                        "/api/v1/rms/food_category/**",
                         "/api/v1/rms/food_category/remove")
                     .hasRole("ADMIN")
                     .anyRequest()

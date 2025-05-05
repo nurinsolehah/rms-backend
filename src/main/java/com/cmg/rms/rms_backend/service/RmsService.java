@@ -10,6 +10,7 @@ import com.cmg.rms.rms_backend.dto.paging.PaginationRequestDTO;
 import com.cmg.rms.rms_backend.dto.paging.PaginationResponseDTO;
 import com.cmg.rms.rms_backend.exception.ExceptionCode;
 import com.cmg.rms.rms_backend.exception.RmsException;
+import com.cmg.rms.rms_backend.mapper.FoodCategoryListMapper;
 import com.cmg.rms.rms_backend.mapper.RecipeListMapper;
 import com.cmg.rms.rms_backend.model.FoodCategory;
 import com.cmg.rms.rms_backend.model.RecipeHdrs;
@@ -204,14 +205,33 @@ public class RmsService implements IRmsService {
   }
 
   @Override
-  public List<FoodCategoryListDTO> getFoodCategory() {
+  public List<FoodCategoryListDTO> getFoodCategory(
+      String categoryName, PaginationRequestDTO pgDTO) {
     final String methodName = "getFoodCategory";
     log.info(LogUtil.ENTRY_SERVICE, methodName);
 
-    List<FoodCategoryListDTO> response = rmsRepositoryJooq.getFoodCategory();
+    PaginationRequestDTO paginationRequestDTO =
+        PaginationUtil.pageSorting(pgDTO, new FoodCategoryListMapper(), false);
+
+    List<FoodCategoryListDTO> response =
+        rmsRepositoryJooq.getFoodCategory(categoryName, paginationRequestDTO);
 
     log.info(LogUtil.EXIT_SERVICE, methodName);
     return response;
+  }
+
+  @Override
+  public PaginationResponseDTO getFoodCategoryListPages(
+      String categoryName, PaginationRequestDTO pgDTO) {
+    final String methodName = "getFoodCategoryListPages";
+    log.info(LogUtil.ENTRY_SERVICE, methodName);
+
+    Long total = rmsRepositoryJooq.getFoodCategoryListPages(categoryName);
+
+    PaginationResponseDTO paginationResponseDTO = PaginationUtil.pagination(pgDTO.size(), total);
+
+    log.info(LogUtil.EXIT_SERVICE, methodName);
+    return paginationResponseDTO;
   }
 
   @Override

@@ -157,9 +157,15 @@ public class RmsRepositoryJooq {
     log.info(LogUtil.EXIT_JOOQ, methodName);
   }
 
-  public List<FoodCategoryListDTO> getFoodCategory() {
+  public List<FoodCategoryListDTO> getFoodCategory(
+      String categoryName, PaginationRequestDTO pgDTO) {
     final String methodName = "getFoodCategory";
     log.info(LogUtil.ENTRY_JOOQ, methodName);
+
+    Condition condition = noCondition();
+    condition =
+        JooqUtil.andCondition(
+            condition, field("category_name"), Field::containsIgnoreCase, categoryName);
 
     Field<Long> categoryId = field("category_id", Long.class);
     Field<String> value = field("category_code", String.class).as("value");
@@ -172,7 +178,10 @@ public class RmsRepositoryJooq {
     Select<?> query =
         dsl.select(categoryId, value, description, status)
             .from(TableUtil.table(TableUtil.RMS_FOOD_CATEGORY, "RFC"))
-            .orderBy(field("category_code").asc());
+            .where(condition)
+            .orderBy(CoreUtilsRepositoryJooq.getOrderByField(pgDTO.sort(), pgDTO.sortDirection()))
+            .offset((pgDTO.page() - 1) * pgDTO.size())
+            .limit(pgDTO.size());
 
     log.info(LogUtil.QUERY, query);
 
@@ -180,5 +189,27 @@ public class RmsRepositoryJooq {
 
     log.info(LogUtil.EXIT_JOOQ, methodName);
     return foodCategoryList;
+  }
+
+  public Long getFoodCategoryListPages(String categoryName) {
+    final String methodName = "getFoodCategoryListPages";
+    log.info(LogUtil.ENTRY_JOOQ, methodName);
+
+    Condition condition = noCondition();
+    condition =
+        JooqUtil.andCondition(
+            condition, field("category_name"), Field::containsIgnoreCase, categoryName);
+
+    Select<?> query =
+        dsl.selectCount()
+            .from(TableUtil.table(TableUtil.RMS_FOOD_CATEGORY, "RFC"))
+            .where(condition);
+
+    log.info(LogUtil.QUERY, query);
+
+    Long result = query.fetchOneInto(Long.class);
+
+    log.info(LogUtil.EXIT_JOOQ, methodName);
+    return result;
   }
 }

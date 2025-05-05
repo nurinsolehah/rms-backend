@@ -50,6 +50,22 @@ public class RmsUsersRepositoryJooq {
     return result;
   }
 
-  {
+  public Long getUserListPages(String username, String userRole) {
+    final String methodName = "getUserListPages";
+    log.info(LogUtil.ENTRY_JOOQ, methodName);
+
+    Condition condition = noCondition();
+    condition =
+        JooqUtil.andCondition(condition, field("username"), Field::containsIgnoreCase, username);
+    condition = JooqUtil.andCondition(condition, field("user_role"), Field::eq, userRole);
+
+    Select<?> query = dsl.selectCount().from(table(TableUtil.RMS_USERS)).where(condition);
+
+    log.info(LogUtil.QUERY, query);
+
+    Long result = query.fetchOneInto(Long.class);
+
+    log.info(LogUtil.EXIT_JOOQ, methodName);
+    return result;
   }
 }

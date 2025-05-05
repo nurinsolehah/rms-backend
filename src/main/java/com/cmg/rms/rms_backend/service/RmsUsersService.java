@@ -3,6 +3,7 @@ package com.cmg.rms.rms_backend.service;
 import com.cmg.rms.rms_backend.IRmsUsersService;
 import com.cmg.rms.rms_backend.dto.RmsRegistrationDTO;
 import com.cmg.rms.rms_backend.dto.paging.PaginationRequestDTO;
+import com.cmg.rms.rms_backend.dto.paging.PaginationResponseDTO;
 import com.cmg.rms.rms_backend.exception.ExceptionCode;
 import com.cmg.rms.rms_backend.exception.RmsException;
 import com.cmg.rms.rms_backend.mapper.UserListMapper;
@@ -87,5 +88,19 @@ public class RmsUsersService implements IRmsUsersService {
 
     log.info(LogUtil.EXIT_SERVICE, methodName);
     return response;
+  }
+
+  @Override
+  public PaginationResponseDTO getUserListPages(
+      String username, String userRole, PaginationRequestDTO pgDTO) {
+    final String methodName = "getUserListPages";
+    log.info(LogUtil.ENTRY_SERVICE, methodName);
+
+    Long total = rmsUsersRepositoryJooq.getUserListPages(username, userRole);
+
+    PaginationResponseDTO paginationResponseDTO = PaginationUtil.pagination(pgDTO.size(), total);
+
+    log.info(LogUtil.EXIT_SERVICE, methodName);
+    return paginationResponseDTO;
   }
 }

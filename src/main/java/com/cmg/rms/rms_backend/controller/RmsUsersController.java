@@ -4,6 +4,7 @@ import com.cmg.rms.rms_backend.IRmsUsersService;
 import com.cmg.rms.rms_backend.dto.LoginRequestDTO;
 import com.cmg.rms.rms_backend.dto.RmsRegistrationDTO;
 import com.cmg.rms.rms_backend.dto.paging.PaginationRequestDTO;
+import com.cmg.rms.rms_backend.dto.paging.PaginationResponseDTO;
 import com.cmg.rms.rms_backend.security.JwtTokenUtil;
 import com.cmg.rms.rms_backend.security.UsersDTO;
 import com.cmg.rms.rms_backend.service.RmsUserDetailsService;
@@ -83,6 +84,29 @@ public class RmsUsersController {
         new PaginationRequestDTO(sort, sortDirection, page, size);
 
     List<UsersDTO> response = rmsUsersService.getUserList(username, userRole, paginationRequestDTO);
+    log.info(LogUtil.EXIT, methodName);
+    return response;
+  }
+
+  /**
+   * Retrieves a pagination object containing the total number of pages and the current page.
+   *
+   * @param username the username to filter by. If null, all usernames are returned.
+   * @param userRole the user role to filter by. If null, all user roles are returned.
+   * @param size the size of the list to retrieve. If null, the default size is used.
+   * @return a pagination object containing the total number of pages and the current page.
+   */
+  @GetMapping("/user_list/page")
+  public PaginationResponseDTO getUserListPages(
+      @RequestParam(required = false) String username,
+      @RequestParam(required = false) String userRole,
+      @RequestParam(required = false) Long size) {
+    final String methodName = "getUserListPages";
+    log.info(LogUtil.ENTRY, methodName);
+
+    PaginationRequestDTO pgDTO = new PaginationRequestDTO(null, null, null, size);
+    PaginationResponseDTO response = rmsUsersService.getUserListPages(username, userRole, pgDTO);
+
     log.info(LogUtil.EXIT, methodName);
     return response;
   }
