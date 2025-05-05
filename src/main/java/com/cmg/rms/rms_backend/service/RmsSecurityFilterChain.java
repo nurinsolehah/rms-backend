@@ -36,7 +36,7 @@ public class RmsSecurityFilterChain {
                         "/api/v1/users/user_list",
                         "/api/v1/users/user_list/page",
                         "/api/v1/rms/food_category",
-                        "api/v1/rms/food_category/page",
+                        "/api/v1/rms/food_category/page",
                         "/api/v1/rms/food_category/remove")
                     .hasRole("ADMIN")
                     .anyRequest()
