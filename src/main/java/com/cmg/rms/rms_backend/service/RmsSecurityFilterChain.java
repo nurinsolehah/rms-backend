@@ -30,7 +30,7 @@ public class RmsSecurityFilterChain {
             auth ->
                 auth.requestMatchers("/api/v1/users/register", "/api/v1/users/login")
                     .permitAll()
-                    .requestMatchers("/swagger-ui.html", "/v3/api-docs")
+                    .requestMatchers("/swagger-ui/**", "/v3/api-docs*/**")
                     .permitAll()
                     .requestMatchers(
                         "/api/v1/users/user_list",
