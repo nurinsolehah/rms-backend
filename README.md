@@ -18,10 +18,10 @@ Only Admin access:
 2. View Food Category List
 3. Deactive a Food Category
 
-1. Clone repository
-2. Do docker build
+Docker 
+1. Do docker build
    - docker build -t rms-backend .
-3. Run docker
+2. Run docker
    - docker run -p 8080:8080 rms-backend
 
 
