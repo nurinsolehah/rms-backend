@@ -1,4 +1,4 @@
-Recipe Management System
+# Recipe Management System
 
 User role: ADMIN and USER
 
@@ -18,11 +18,11 @@ Only Admin access:
 2. View Food Category List
 3. Deactive a Food Category
 
-Docker 
+## Docker 
 1. Do docker build
-   - docker build -t rms-backend .
+   > docker build -t rms-backend .
 2. Run docker
-   - docker run -p 8080:8080 rms-backend
+   > docker run -p 8080:8080 rms-backend
 
 
    
